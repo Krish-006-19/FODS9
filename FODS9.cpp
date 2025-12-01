@@ -1,264 +1,241 @@
 #include <iostream>
-#include <queue>
-#include <stack>
 #include <limits>
 using namespace std;
 
-#define MAX_VERTICES 100
+#define MAX 10
+
+int adj[MAX][MAX];   
+int visited[MAX];    
+int vertexCount = 0;
+
+//---------------- STACK ----------------//
+
+class Stack {
+public:
+    int items[MAX];
+    int top;
+
+    Stack() { top = -1; }
+
+    bool isEmpty() { return top == -1; }
+
+    void push(int value) {
+        if (top == MAX - 1) {
+            cout << "Stack Overflow\n";
+            return;
+        }
+        items[++top] = value;
+    }
+
+    int pop() {
+        if (isEmpty()) return -1;
+        return items[top--];
+    }
+};
+
+//---------------- QUEUE ----------------//
+
+class Queue {
+public:
+    int items[MAX];
+    int front, rear;
+
+    Queue() {
+        front = rear = 0;
+    }
+
+    bool isEmpty() {
+        return front == rear;
+    }
+
+    void enqueue(int value) {
+        if (rear == MAX) {
+            cout << "Queue Overflow!\n";
+            return;
+        }
+        items[rear++] = value;
+    }
+
+    int dequeue() {
+        if (isEmpty()) return -1;
+        return items[front++];
+    }
+};
+
+//--------------- UTILITIES ---------------//
+
+void resetVisited() {
+    for (int i = 0; i < MAX; i++)
+        visited[i] = 0;
+}
 
 int get_integer_input() {
-    int num;
+    int value;
     while (true) {
-        cin >> num;
-        if (cin.fail()) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please enter a valid integer: ";
-        } else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return num;
+        cin >> value;
+        if (!cin.fail()) {
+            return value;
         }
+        cout << "Invalid input! Please enter a whole number: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-class Graph {
-private:
-    int adjMatrix[MAX_VERTICES][MAX_VERTICES];
-    int numVertices;
+//--------------- GRAPH OPS ---------------//
 
-public:
-    Graph() {
-        numVertices = 0;
-        for (int i = 0; i < MAX_VERTICES; i++)
-            for (int j = 0; j < MAX_VERTICES; j++)
-                adjMatrix[i][j] = 0;
+void addVertex() {
+    if (vertexCount == MAX) {
+        cout << "Maximum vertices reached!\n";
+        return;
     }
 
-    void createGraph() {
-        cout << "Enter number of vertices (max " << MAX_VERTICES << "): ";
-        numVertices = get_integer_input();
-        if (numVertices <= 0 || numVertices > MAX_VERTICES) {
-            cout << "Invalid number of vertices.\n";
-            numVertices = 0;
-            return;
-        }
+    vertexCount++;
+    cout << "Vertex " << vertexCount - 1 << " added.\n";
+}
 
-        for (int i = 0; i < numVertices; i++)
-            for (int j = 0; j < numVertices; j++)
-                adjMatrix[i][j] = 0;
-
-        cout << "Enter number of edges: ";
-        int numEdges = get_integer_input();
-
-        cout << "Enter edges as pairs (u v):\n";
-        for (int i = 0; i < numEdges; i++) {
-            int u, v;
-            cout << "Edge " << i + 1 << ": ";
-            cin >> u >> v;
-            if (u < 0 || v < 0 || u >= numVertices || v >= numVertices || u == v) {
-                cout << "Invalid edge! Try again.\n";
-                i--;
-            } else {
-                adjMatrix[u][v] = 1;
-                adjMatrix[v][u] = 1;
-            }
-        }
-
-        cout << "Graph created successfully.\n";
+void addEdge(int src, int dest) {
+    if (src >= vertexCount || dest >= vertexCount) {
+        cout << "Invalid vertex number\n";
+        return;
     }
 
-    void displayMatrix() const {
-        if (numVertices == 0) {
-            cout << "Graph not created yet.\n";
-            return;
-        }
+    adj[src][dest] = 1;
+    adj[dest][src] = 1;
 
-        cout << "\nAdjacency Matrix:\n   ";
-        for (int i = 0; i < numVertices; i++)
-            cout << i << " ";
-        cout << "\n  ";
-        for (int i = 0; i < numVertices; i++)
-            cout << "--";
-        cout << "\n";
+    cout << "Edge " << src << " -- " << dest << " added\n";
+}
 
-        for (int i = 0; i < numVertices; i++) {
-            cout << i << "| ";
-            for (int j = 0; j < numVertices; j++)
-                cout << adjMatrix[i][j] << " ";
-            cout << "\n";
-        }
-    }
+void displayGraph() {
+    cout << "\nAdjacency Matrix:\n  ";
 
-    void addVertex() {
-        if (numVertices >= MAX_VERTICES) {
-            cout << "Maximum vertex limit reached.\n";
-            return;
-        }
+    for (int i = 0; i < vertexCount; i++)
+        cout << i << " ";
+    cout << "\n";
 
-        for (int i = 0; i <= numVertices; i++) {
-            adjMatrix[i][numVertices] = 0;
-            adjMatrix[numVertices][i] = 0;
-        }
-        numVertices++;
-        cout << "Vertex " << numVertices - 1 << " added.\n";
-    }
-
-    void addEdge() {
-        int u, v;
-        cout << "Enter first vertex: ";
-        u = get_integer_input();
-        cout << "Enter second vertex: ";
-        v = get_integer_input();
-
-        if (u < 0 || v < 0 || u >= numVertices || v >= numVertices || u == v) {
-            cout << "Invalid vertices.\n";
-            return;
-        }
-
-        adjMatrix[u][v] = 1;
-        adjMatrix[v][u] = 1;
-        cout << "Edge added between " << u << " and " << v << ".\n";
-    }
-
-    void deleteVertex() {
-        if (numVertices == 0) {
-            cout << "No vertices to delete.\n";
-            return;
-        }
-
-        cout << "Enter vertex to delete (0–" << numVertices - 1 << "): ";
-        int k = get_integer_input();
-        if (k < 0 || k >= numVertices) {
-            cout << "Invalid vertex.\n";
-            return;
-        }
-
-        for (int i = k; i < numVertices - 1; i++)
-            for (int j = 0; j < numVertices; j++)
-                adjMatrix[i][j] = adjMatrix[i + 1][j];
-
-        for (int j = k; j < numVertices - 1; j++)
-            for (int i = 0; i < numVertices; i++)
-                adjMatrix[i][j] = adjMatrix[i][j + 1];
-
-        numVertices--;
-        cout << "Vertex " << k << " deleted. Remaining vertices reindexed.\n";
-    }
-
-    void deleteEdge() {
-        int u, v;
-        cout << "Enter first vertex: ";
-        u = get_integer_input();
-        cout << "Enter second vertex: ";
-        v = get_integer_input();
-
-        if (u < 0 || v < 0 || u >= numVertices || v >= numVertices) {
-            cout << "Invalid vertices.\n";
-            return;
-        }
-
-        if (adjMatrix[u][v] == 0) {
-            cout << "Edge does not exist.\n";
-        } else {
-            adjMatrix[u][v] = 0;
-            adjMatrix[v][u] = 0;
-            cout << "Edge deleted between " << u << " and " << v << ".\n";
-        }
-    }
-
-    void DFS(int start) {
-        if (start < 0 || start >= numVertices) {
-            cout << "Invalid starting vertex.\n";
-            return;
-        }
-
-        bool visited[MAX_VERTICES] = {false};
-        stack<int> s;
-        s.push(start);
-
-        cout << "DFS Traversal: ";
-        while (!s.empty()) {
-            int v = s.top();
-            s.pop();
-            if (!visited[v]) {
-                visited[v] = true;
-                cout << v << " ";
-                for (int i = numVertices - 1; i >= 0; i--)
-                    if (adjMatrix[v][i] && !visited[i])
-                        s.push(i);
-            }
+    for (int i = 0; i < vertexCount; i++) {
+        cout << i << " ";
+        for (int j = 0; j < vertexCount; j++) {
+            cout << adj[i][j] << " ";
         }
         cout << "\n";
     }
+}
 
-    void BFS(int start) {
-        if (start < 0 || start >= numVertices) {
-            cout << "Invalid starting vertex.\n";
-            return;
-        }
+void DFS(int start) {
+    if (start >= vertexCount) {
+        cout << "Invalid starting vertex\n";
+        return;
+    }
 
-        bool visited[MAX_VERTICES] = {false};
-        queue<int> q;
-        q.push(start);
-        visited[start] = true;
+    Stack s;
+    resetVisited();
 
-        cout << "BFS Traversal: ";
-        while (!q.empty()) {
-            int v = q.front();
-            q.pop();
+    cout << "DFS: ";
+    s.push(start);
+
+    while (!s.isEmpty()) {
+        int v = s.pop();
+
+        if (!visited[v]) {
+            visited[v] = 1;
             cout << v << " ";
-            for (int i = 0; i < numVertices; i++) {
-                if (adjMatrix[v][i] && !visited[i]) {
-                    visited[i] = true;
-                    q.push(i);
+
+            for (int i = 0; i < vertexCount; i++) {
+                if (adj[v][i] == 1 && !visited[i]) {
+                    s.push(i);
                 }
             }
         }
-        cout << "\n";
     }
 
-    int getNumVertices() const { return numVertices; }
-};
+    cout << "\n";
+}
+
+void BFS(int start) {
+    if (start >= vertexCount) {
+        cout << "Invalid starting vertex\n";
+        return;
+    }
+
+    Queue q;
+    resetVisited();
+
+    cout << "BFS: ";
+    q.enqueue(start);
+    visited[start] = 1;
+
+    while (!q.isEmpty()) {
+        int v = q.dequeue();
+        cout << v << " ";
+
+        for (int i = 0; i < vertexCount; i++) {
+            if (adj[v][i] == 1 && !visited[i]) {
+                q.enqueue(i);
+                visited[i] = 1;
+            }
+        }
+    }
+
+    cout << "\n";
+}
+
+//---------------- MAIN ----------------//
 
 int main() {
-    Graph g;
-    int choice;
+    int choice, src, dest, start;
 
     while (true) {
-        cout << "\n--- Graph Menu ---\n"
-             << "1. Create Graph\n"
-             << "2. Display Matrix\n"
-             << "3. Add Vertex\n"
-             << "4. Add Edge\n"
-             << "5. Delete Vertex\n"
-             << "6. Delete Edge\n"
-             << "7. DFS Traversal\n"
-             << "8. BFS Traversal\n"
-             << "9. Exit\n"
-             << "Enter choice: ";
+        cout << "\n===== GRAPH MENU =====\n";
+        cout << "1. Add Vertex\n";
+        cout << "2. Add Edge\n";
+        cout << "3. Display Graph (Matrix)\n";
+        cout << "4. DFS (Iterative)\n";
+        cout << "5. BFS\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
 
         choice = get_integer_input();
 
         switch (choice) {
-            case 1: g.createGraph(); break;
-            case 2: g.displayMatrix(); break;
-            case 3: g.addVertex(); break;
-            case 4: g.addEdge(); break;
-            case 5: g.deleteVertex(); break;
-            case 6: g.deleteEdge(); break;
-            case 7:
-                cout << "Enter start vertex for DFS: ";
-                g.DFS(get_integer_input());
+            case 1:
+                addVertex();
                 break;
-            case 8:
-                cout << "Enter start vertex for BFS: ";
-                g.BFS(get_integer_input());
+
+            case 2:
+                cout << "Enter source vertex: ";
+                src = get_integer_input();
+
+                cout << "Enter destination vertex: ";
+                dest = get_integer_input();
+
+                addEdge(src, dest);
                 break;
-            case 9:
+
+            case 3:
+                displayGraph();
+                break;
+
+            case 4:
+                cout << "Enter starting vertex for DFS: ";
+                start = get_integer_input();
+                DFS(start);
+                break;
+
+            case 5:
+                cout << "Enter starting vertex for BFS: ";
+                start = get_integer_input();
+                BFS(start);
+                break;
+
+            case 6:
                 cout << "Exiting...\n";
                 return 0;
+
             default:
-                cout << "Invalid choice!\n";
+                cout << "Invalid choice! Try again.\n";
         }
     }
+
+    return 0;
 }
