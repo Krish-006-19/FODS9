@@ -8,8 +8,6 @@ int adj[MAX][MAX];
 int visited[MAX];    
 int vertexCount = 0;
 
-//---------------- STACK ----------------//
-
 class Stack {
 public:
     int items[MAX];
@@ -32,8 +30,6 @@ public:
         return items[top--];
     }
 };
-
-//---------------- QUEUE ----------------//
 
 class Queue {
 public:
@@ -62,8 +58,6 @@ public:
     }
 };
 
-//--------------- UTILITIES ---------------//
-
 void resetVisited() {
     for (int i = 0; i < MAX; i++)
         visited[i] = 0;
@@ -81,8 +75,6 @@ int get_integer_input() {
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
-
-//--------------- GRAPH OPS ---------------//
 
 void addVertex() {
     if (vertexCount == MAX) {
@@ -179,8 +171,6 @@ void BFS(int start) {
 
     cout << "\n";
 }
-
-//---------------- MAIN ----------------//
 
 int main() {
     int choice, src, dest, start;
