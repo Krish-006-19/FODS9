@@ -172,6 +172,49 @@ void BFS(int start) {
     cout << "\n";
 }
 
+void deleteVertex(int v) {
+    if (v >= vertexCount) {
+        cout << "Invalid vertex number\n";
+        return;
+    }
+
+    for (int i = v; i < vertexCount - 1; i++) {
+        for (int j = 0; j < vertexCount; j++)
+            adj[i][j] = adj[i + 1][j];
+    }
+
+    for (int j = v; j < vertexCount - 1; j++) {
+        for (int i = 0; i < vertexCount; i++)
+            adj[i][j] = adj[i][j + 1];
+    }
+
+    for (int i = 0; i < vertexCount; i++) {
+        adj[vertexCount - 1][i] = 0;
+        adj[i][vertexCount - 1] = 0;
+    }
+
+    vertexCount--;
+
+    cout << "Vertex " << v << " deleted.\n";
+}
+
+void deleteEdge(int src, int dest) {
+    if (src >= vertexCount || dest >= vertexCount) {
+        cout << "Invalid vertex number\n";
+        return;
+    }
+
+    if (adj[src][dest] == 0) {
+        cout << "Edge does not exist.\n";
+        return;
+    }
+
+    adj[src][dest] = 0;
+    adj[dest][src] = 0;
+
+    cout << "Edge " << src << " -- " << dest << " deleted\n";
+}
+
 int main() {
     int choice, src, dest, start;
 
@@ -183,6 +226,8 @@ int main() {
         cout << "4. DFS (Iterative)\n";
         cout << "5. BFS\n";
         cout << "6. Exit\n";
+        cout << "7. Delete Edge\n";
+        cout << "8. Delete Vertex\n";
         cout << "Enter your choice: ";
 
         choice = get_integer_input();
@@ -221,6 +266,20 @@ int main() {
             case 6:
                 cout << "Exiting...\n";
                 return 0;
+            
+            case 7:
+                cout << "Enter source vertex: ";
+                src = get_integer_input();
+                cout << "Enter destination vertex: ";
+                dest = get_integer_input();
+                deleteEdge(src, dest);
+                break;
+            
+            case 8:
+                cout << "Enter vertex to delete: ";
+                start = get_integer_input();
+                deleteVertex(start);
+                break;
 
             default:
                 cout << "Invalid choice! Try again.\n";
